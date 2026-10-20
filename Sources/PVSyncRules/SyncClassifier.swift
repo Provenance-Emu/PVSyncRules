@@ -76,6 +76,21 @@ public enum SyncClassifier {
         "00010001", "00010004", "00010005", "00010008"
     ]
 
+    /// App-owned per-game title, custom cover and classification-tag documents.
+    /// A shard is keyed by SHA-256 of the app's canonical game identity. Keep its
+    /// exact namespace and lower-case digest stable: paths are cloud record IDs.
+    public static let libraryMetadataMaxFileSizeBytes: Int64 = 1024 * 1024
+
+    public static func isLibraryMetadataShard(relativePath: String) -> Bool {
+        let prefix = "Profiles/LibraryMetadata/"
+        guard relativePath.hasPrefix(prefix) else { return false }
+        let name = relativePath.dropFirst(prefix.count)
+        guard name.count == 69, name.hasSuffix(".json") else { return false }
+        return name.dropLast(5).utf8.allSatisfy {
+            (48...57).contains($0) || (97...102).contains($0)
+        }
+    }
+
     // MARK: - Classification
 
     /// Classify a User-directory-relative path, or return `nil` if it must not
@@ -131,6 +146,10 @@ public enum SyncClassifier {
 
         // Per-game settings. NOTE: this file also contains cheats in iCube.
         if top == "gamesettings", ext == "ini", components.count == 2 { return .gameSettings }
+
+        // Per-game library edits share the opaque timestamp-document merge
+        // bucket, but remain separate files from emulator game profiles.
+        if isLibraryMetadataShard(relativePath: relativePath) { return .gameProfile }
 
         // iCube's own JSON stores next to Dolphin's tree.
         if top == "profiles", components.count == 2, ext == "json" {
@@ -259,6 +278,7 @@ public enum SyncClassifier {
     public static func syncableType(relativePath: String, sizeBytes: Int64) -> SyncableFileType? {
         guard let type = classify(relativePath: relativePath) else { return nil }
         guard isWithinSizeLimit(sizeBytes, for: type) else { return nil }
+        if isLibraryMetadataShard(relativePath: relativePath), sizeBytes > libraryMetadataMaxFileSizeBytes { return nil }
         return type
     }
 
