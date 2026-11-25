@@ -34,7 +34,7 @@ import Foundation
 ///   They used to be hard exclusions. They are the user's own dumps going to
 ///   the user's own private database, so the user gets the switch; the default
 ///   is off, and `SyncPolicy` keeps them off until it is flipped.
-public enum SyncClassifier {
+@frozen public enum SyncClassifier {
 
     /// Default per-file cap. Categories with a larger legitimate payload
     /// override it through `SyncableFileType.maxFileSizeBytes`.
