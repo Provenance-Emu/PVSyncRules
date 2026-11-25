@@ -14,7 +14,7 @@ import Foundation
 /// row in each switch, and nothing elsewhere has to learn about it.
 ///
 /// Design spec: `docs/superpowers/specs/2026-10-11-icube-user-data-sync-design.md`.
-public enum SyncableFileType: String, Codable, Sendable, CaseIterable {
+@frozen public enum SyncableFileType: String, Codable, Sendable, CaseIterable {
 
     // MARK: Always on when sync is on
 
@@ -145,7 +145,7 @@ public enum SyncableFileType: String, Codable, Sendable, CaseIterable {
 }
 
 /// How the sync engine reconciles two differing copies of one file.
-public enum SyncMergeKind: String, Codable, Sendable {
+@frozen public enum SyncMergeKind: String, Codable, Sendable {
     /// One copy wins (by timestamp, or the user decides). The default.
     case wholeFile
     /// The two copies are merged field by field by a `DocumentMerger`; neither
